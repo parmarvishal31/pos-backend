@@ -1,5 +1,6 @@
 import Shop from "../models/shop.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const createShop = async (req, res) => {
   const { name, email, password } = req.body;
@@ -70,4 +71,40 @@ const getAllShop = async (req, res) => {
   }
 };
 
-export { createShop, getAllShop };
+const signinShop = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const oldShop = await Shop.findOne({ email });
+    if (!oldShop)
+      return res.status(404).json({ message: "Shop does not  exist!" });
+
+    const matchPasswrod = await bcrypt.compare(password, oldShop.password);
+    if (!matchPasswrod)
+      return res.status(404).json({ message: "Invalid Shop credential" });
+
+    const token = jwt.sign(
+      {
+        id: oldShop._id,
+        email: oldShop.email,
+        isActive: oldShop.isActive,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRY,
+      }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Login successfully..",
+      shop: oldShop,
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message || "Signin Problem! (:",
+    });
+  }
+};
+export { createShop, getAllShop, signinShop };
