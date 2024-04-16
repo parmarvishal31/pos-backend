@@ -107,4 +107,46 @@ const signinShop = async (req, res) => {
     });
   }
 };
-export { createShop, getAllShop, signinShop };
+
+const updateShop = async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  try {
+    const updatedShop = await Shop.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
+
+    if (!updatedShop) {
+      return res.status(404).json({ message: "Shop not found." });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Shop updated successfully.", shop: updatedShop });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Update shop error." });
+  }
+};
+
+const deleteShop = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedShop = await Shop.findByIdAndDelete(id);
+
+    if (!deletedShop) {
+      return res.status(404).json({ message: "Shop not found." });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Shop deleted successfully.", shop: deletedShop });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Delete shop error." });
+  }
+};
+
+export { createShop, getAllShop, signinShop, updateShop, deleteShop };
