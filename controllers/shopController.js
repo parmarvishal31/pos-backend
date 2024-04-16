@@ -109,24 +109,38 @@ const signinShop = async (req, res) => {
 };
 
 const updateShop = async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
+  const { id } = req.params; // Assuming you're passing the shop ID in the URL
+  const updateData = req.body;
 
   try {
-    const updatedShop = await Shop.findByIdAndUpdate(id, updates, {
-      new: true,
-    });
+    const shop = await Shop.findByIdAndUpdate(id, updateData, { new: true });
 
-    if (!updatedShop) {
-      return res.status(404).json({ message: "Shop not found." });
+    // Check if shop exists
+    if (!shop) {
+      return res.status(404).json({ message: "Shop not found" });
     }
 
-    res
-      .status(200)
-      .json({ message: "Shop updated successfully.", shop: updatedShop });
+    // Calculate end date if start date is provided or exists
+    if (updateData.start_date || shop.start_date) {
+      const start_date = updateData.start_date || shop.start_date;
+      const end_date = new Date(start_date);
+      end_date.setMonth(end_date.getMonth() + 6);
+      shop.end_date = end_date;
+    }
+
+    // Save the updated shop
+    const updatedShop = await shop.save();
+
+    // Return the updated shop
+    return res.status(200).json({
+      success: true,
+      data: updatedShop,
+      message: "Shop update.",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Update shop error." });
+    // Handle errors
+    console.error("Error updating shop:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
