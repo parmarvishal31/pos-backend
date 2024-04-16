@@ -2,7 +2,7 @@ import Shop from "../models/shop.js";
 import bcrypt from "bcryptjs";
 
 const createShop = async (req, res) => {
-  const {name,email,password} = req.body;
+  const { name, email, password } = req.body;
   try {
     const oldShop = await Shop.findOne({ email });
     if (oldShop)
@@ -24,7 +24,7 @@ const createShop = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Registration successfully..",
-      user: newShop,
+      shop: newShop,
     });
   } catch (error) {
     console.error(error);
@@ -34,7 +34,6 @@ const createShop = async (req, res) => {
 
 const getAllShop = async (req, res) => {
   const search = req.query.q; // Remove leading/trailing whitespace
-  console.log("Search term:", search);
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -42,11 +41,18 @@ const getAllShop = async (req, res) => {
     let query = {};
     if (search) {
       query = {
-        $or: [{ name: { $regex: search, $options: "i" } }],
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { isActive: { $regex: search, $options: "i" } },
+        ],
       };
     }
     const skip = (page - 1) * limit;
-    const shop = await Shop.find(query).skip(skip).limit(limit);
+    const shop = await Shop.find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
     if (shop.length === 0) {
       return res.status(404).json({ message: "No matching shops found." });
