@@ -4,9 +4,10 @@ import {
   getCategory,
 } from "../controllers/categoryController.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
+import checkSubscription from "../middlewares/checkSubscription.js";
 const router = express.Router();
 
-router.get("/", isLoggedIn, getCategory);
-router.post("/", createCategory);
+router.get("/", checkSubscription, getCategory);
+router.post("/",checkSubscription, createCategory);
 
 export default router;

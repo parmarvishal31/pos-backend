@@ -1,10 +1,16 @@
-import Category from "../models/category.js";
+import mongoose from "mongoose";
+import { categorySchema } from "../models/category.js";
 
+function createCategoryCollectionForShop(shopId) {
+  const collectionName = `category_${shopId}`;
+  return mongoose.model(collectionName, categorySchema);
+}
 
 const createCategory = async (req, res) => {
   const { name } = req.body;
-
+  const shop = req.shop
   try {
+    const Category = createCategoryCollectionForShop(shop.uuid);
     if (!name) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -38,12 +44,12 @@ const createCategory = async (req, res) => {
 };
 
 const getCategory = async (req, res) => {
-  const search = req.query.q; // Remove leading/trailing whitespace
-  console.log("Search term:", search);
+  const search = req.query.q; 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-
+  const shop = req.shop
   try {
+    const Category = createCategoryCollectionForShop(shop.uuid);
     let query = {};
     if (search) {
       query = {

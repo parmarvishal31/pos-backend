@@ -34,7 +34,7 @@ const createShop = async (req, res) => {
 };
 
 const getAllShop = async (req, res) => {
-  const search = req.query.q; // Remove leading/trailing whitespace
+  const search = req.query.q; 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -113,11 +113,25 @@ const updateShop = async (req, res) => {
   const updateData = req.body;
 
   try {
-    const shop = await Shop.findByIdAndUpdate(id, updateData, { new: true });
+    // Find the shop by ID
+    const shop = await Shop.findById(id);
 
     // Check if shop exists
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
+    }
+
+    // Update shop properties with updateData
+    Object.keys(updateData).forEach(key => {
+      if (key !== 'password') {
+        shop[key] = updateData[key];
+      }
+    });
+
+    // Encrypt password if it's included in the update data
+    if (updateData.password) {
+      const hashedPassword = await bcrypt.hash(updateData.password, 12);
+      shop.password = hashedPassword;
     }
 
     // Calculate end date if start date is provided or exists
